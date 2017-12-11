@@ -9,7 +9,8 @@ def printTS(pcapFile, lib):
         packets = rdpcap(pcapFile)
         counter = 0
         for packet in packets:
-            print('%.9f' % packet.time)
+            # print packet.time
+            print str.format('{0:.9f}', packet.time)
             counter += 1
             if counter >= 10:
                 break
@@ -18,7 +19,7 @@ def printTS(pcapFile, lib):
         with open(pcapFile, 'rb') as f:
             packets = dpkt.pcap.Reader(f)
             for ts, buf in packets:
-                print('%.9f' % ts)
+                print str.format('{0:.9f}', ts)
                 counter += 1
                 if counter >= 10:
                     break
