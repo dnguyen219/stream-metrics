@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import dpkt
+from scapy.all import *
 from stream import ProfessionalMediaStream
 import argparse
 import sys
@@ -47,19 +48,30 @@ def main():
     parser.add_argument('--sampleWidth', default=10)
     parser.add_argument('--senderType', default='2110TPW', help='2110TPN, 2110TPNL, 2110TPW')
     parser.add_argument('--rtpPayload', default=1428)
+    parser.add_argument('-l', '--lib', default='dpkt', help='lib to use: scapy or dpkt (if not supplied, default to dpkt)')
     arguments = parser.parse_args(sys.argv[1:])
     pcapFile = arguments.pcap
+    lib = arguments.lib
 
     strm = ProfessionalMediaStream(arguments.activeWidth, arguments.activeHeight, arguments.rate, arguments.interlaced, arguments.colorSubsampling, arguments.sampleWidth, arguments.senderType)
     strm.rtpPayload = arguments.rtpPayload
 
-    #use dpkt
-    with open(pcapFile, 'rb') as f:
+    #use dpkt or scapy to process the pcap file
+    if lib == 'dpkt':
+        with open(pcapFile, 'rb') as f:
+            print '= StreamMetrics =\n'
+            print 'Reading: {}'.format(pcapFile)
+            packets = dpkt.pcap.Reader(f)
+            for ts, buf in packets:
+                strm.packetEvent(ts)
+    elif lib == 'scapy':
+        packets = rdpcap(pcapFile)
         print '= StreamMetrics =\n'
         print 'Reading: {}'.format(pcapFile)
-        packets = dpkt.pcap.Reader(f)
-        for ts, buf in packets:
-            strm.packetEvent(ts)
+        for packet in packets:
+            strm.packetEvent(packet.time)
+    else:
+        print 'The requested lib is not supported.'
 
     strm.deltas = strm.getDeltas()
     print 'Read {} packets\n'.format(len(strm.deltas) + 1)
