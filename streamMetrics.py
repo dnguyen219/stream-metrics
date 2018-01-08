@@ -12,6 +12,30 @@ def writeHistogramToConsole(hist, bin_edges):
         print axis + "={0}".format(hist[bucketIdx])
         bucketIdx += 1
 
+def writePictogramToConsole(hist, bin_edges, width=78):
+    bucketMaxCount = max(hist)
+    bucketIdx = 0
+    while bucketIdx < len(hist):
+        axis = "[{0:.2f},{1:.2f})".format(bin_edges[bucketIdx], bin_edges[bucketIdx+1])
+        axis = padString(axis, (width / 4) - 1)
+        bar = writeBar(hist[bucketIdx], bucketMaxCount, width - (width / 4))
+        print "{0}:{1}".format(axis, bar)
+        bucketIdx += 1
+
+def padString(s, width, char=" "):
+    spaces = ""
+    spaceCount = width - len(s)
+    i = 0
+    while i < spaceCount:
+        spaces += char
+        i += 1
+    return "{0}{1}".format(s, spaces)
+
+def writeBar(value, maxValue, maxLength):
+    hashes = ""
+    hashes = padString(hashes, (value / maxValue) * maxLength, "#")
+    return hashes
+
 def main():
     parser = argparse.ArgumentParser(description='Stream Metrics')
     parser.add_argument('pcap', help='PCAP file to dump')
@@ -57,7 +81,7 @@ def main():
 
     print "\n= Packet Interval Pictogram (in us) ="
     print "Width: {0:.2f}".format(bin_edges[1] - bin_edges[0])
-    # writePictogramToConsole(hist, bin_edges)
+    writePictogramToConsole(hist, bin_edges)
 
     print "\n= ST 2110-21 ="
     print "Octets to capture the active picture area={:.2f}".format(strm.activeOctets())
