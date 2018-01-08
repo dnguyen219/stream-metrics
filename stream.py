@@ -104,6 +104,7 @@ class ProfessionalMediaStream:
         return max(math.floor(self.VrxFullSpecLeft()), math.floor(self.VrxFullSpecRight()))
 
     def packetEvent(self, ticks):
+        ticks = float(ticks)
         global __lastTicks, deltas, __netCompatBucketDepth, netCompatBucketMaxDepth, __virtRecvBuffBucketDepth, virtRecvBuffBucketMaxDepth, virtRecvBuffBucketMinDepth
         if __lastTicks > 0:
             # deltas converted from ticks (0.1 us) to micro-seconds
