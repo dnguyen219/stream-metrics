@@ -3,7 +3,7 @@ import math, re
 import sys
 
 class ProfessionalMediaStream:
-    global RTP_PAYLOAD, __lastTicks, deltas, __netCompatBucketDepth, netCompatBucketMaxDepth, __virtRecvBuffBucketDepth, virtRecvBuffBucketMaxDepth, virtRecvBuffBucketMinDepth, beta
+    global RTP_PAYLOAD, __MAX_IP, __lastTicks, deltas, __netCompatBucketDepth, netCompatBucketMaxDepth, __virtRecvBuffBucketDepth, virtRecvBuffBucketMaxDepth, virtRecvBuffBucketMinDepth, beta
 
     RTP_PAYLOAD = 1428 #per ST 2110
     __MAX_IP = 1500
@@ -111,7 +111,8 @@ class ProfessionalMediaStream:
             deltas.append((ticks - __lastTicks) * 1000000.0)
         if self.rate and self.activeHeight and self.activeWidth and self.colorSubsampling and self.interlaced and self.sampleWidth:
             if __lastTicks > 0:
-                netCompatPacketsDrained = ((ticks - __lastTicks) / 10000000.0) / self.TDrain(beta)
+                # netCompatPacketsDrained = ((ticks - __lastTicks) / 10000000.0) / self.TDrain(beta)
+                netCompatPacketsDrained = ((ticks - __lastTicks) / 1000000.0) / self.TDrain(beta)
                 __netCompatBucketDepth -= netCompatPacketsDrained
             if __netCompatBucketDepth < 0:
                 __netCompatBucketDepth = 0
@@ -121,7 +122,8 @@ class ProfessionalMediaStream:
             if __netCompatBucketDepth > netCompatBucketMaxDepth:
                 netCompatBucketMaxDepth = math.ceil(__netCompatBucketDepth)
 
-            virtRecvBuffPacketsDrained = ((ticks - __lastTicks) / 10000000.0) / self.TDrain(1.0)
+            # virtRecvBuffPacketsDrained = ((ticks - __lastTicks) / 10000000.0) / self.TDrain(1.0)
+            virtRecvBuffPacketsDrained = ((ticks - __lastTicks) / 1000000.0) / self.TDrain(1.0)
             __virtRecvBuffBucketDepth -= virtRecvBuffPacketsDrained
 
             __virtRecvBuffBucketDepth += 1
@@ -134,3 +136,18 @@ class ProfessionalMediaStream:
 
     def getDeltas(self):
         return deltas
+
+    def getBeta(self):
+        return beta
+
+    def getNetCompatBucketMaxDepth(self):
+        return netCompatBucketMaxDepth
+
+    def getNetCompatBucketMaxDepth(self):
+        return netCompatBucketMaxDepth
+
+    def getVirtRecvBuffBucketMinDepth(self):
+        return virtRecvBuffBucketMinDepth
+
+    def getVirtRecvBuffBucketMaxDepth(self):
+        return virtRecvBuffBucketMaxDepth

@@ -5,6 +5,13 @@ import argparse
 import sys
 import numpy
 
+def writeHistogramToConsole(hist, bin_edges):
+    bucketIdx = 0
+    while bucketIdx < len(hist):
+        axis = "[{0:.2f},{1:.2f})".format(bin_edges[bucketIdx], bin_edges[bucketIdx+1])
+        print axis + "={0}".format(hist[bucketIdx])
+        bucketIdx += 1
+
 def main():
     parser = argparse.ArgumentParser(description='Stream Metrics')
     parser.add_argument('pcap', help='PCAP file to dump')
@@ -28,7 +35,6 @@ def main():
         print 'Reading: {}'.format(pcapFile)
         packets = dpkt.pcap.Reader(f)
         for ts, buf in packets:
-            # print str.format('{0:.9f}', ts)
             strm.packetEvent(ts)
 
     strm.deltas = strm.getDeltas()
@@ -41,6 +47,53 @@ def main():
     print 'Median (50th percentile, in us)={0:.2f}'.format(numpy.median(a))
     print 'Average packet interval (in us)={0:.2f}'.format(numpy.mean(a))
     print 'Packet interval standard dev. (in us)={0:.2f}'.format(numpy.std(a))
+    print '95th percentile (find outliers, in us)={0:.2f}'.format(numpy.percentile(a, 95))
+    print '95th percentile (find outliers, in us)={0:.2f}'.format(numpy.percentile(a, 99))
+    print 'Max interval over file (in us)={0:.2f}'.format(numpy.amax(a))
+
+    print "\n= Packet Interval Numerical Histogram (in us) ="
+    hist, bin_edges = numpy.histogram(a, 10)
+    writeHistogramToConsole(hist, bin_edges)
+
+    print "\n= Packet Interval Pictogram (in us) ="
+    print "Width: {0:.2f}".format(bin_edges[1] - bin_edges[0])
+    # writePictogramToConsole(hist, bin_edges)
+
+    print "\n= ST 2110-21 ="
+    print "Octets to capture the active picture area={:.2f}".format(strm.activeOctets())
+    print "Number of packets per frame of video, N_pkts={:.2f}".format(strm.NPackets())
+    print "Period between consecutive frames of video, T_FRAME (in s)={:.2e}".format(strm.TFrame())
+    print "Sender Type={}".format(strm.senderType)
+
+    print "\n= Network Compatibility Model Compliance ="
+    print "Scaled period between packets draining, T_DRAIN (in s)={:.2e}".format(strm.TDrain(strm.getBeta()))
+    print "Scaling factor, Beta={:.2f}".format(strm.getBeta())
+    print "Spec. C_MAX (left part)={:.2f}".format(strm.CMaxSpecLeft())
+    print "Spec. C_MAX (right part)={:.2f}".format(strm.CMaxSpecRight())
+    print "Spec. C_MAX={:.2f}".format(strm.CMaxSpec())
+    print "Obs. C_MAX={:.2f}".format(strm.getNetCompatBucketMaxDepth())
+
+    isNCCompliant = ""
+    if strm.getNetCompatBucketMaxDepth() > strm.CMaxSpecLeft() and strm.getNetCompatBucketMaxDepth() > strm.CMaxSpecRight():
+        isNCComplied = "NOT "
+    print "Stream does {}comply with the Network Compatibility Model of ST 2110-21\n".format(isNCCompliant)
+
+    print "= Virtual Receiver Buffer Model Compliance ="
+    print "Unscaled period between packets draining, T_DRAIN (in s)={:.2e}".format(strm.TDrain(1.0))
+    print "Spec. VRX_FULL (left part)={:.2f}".format(strm.VrxFullSpecLeft())
+    print "Spec. VRX_FULL (right part)={:.2f}".format(strm.VrxFullSpecRight())
+    print "Spec. VRX_FULL={:.2f}".format(strm.VrxFullSpec())
+    print "Obs. Min VRX_FULL={:.2f}".format(strm.getVirtRecvBuffBucketMinDepth())
+    print "Obs. Max VRX_FULL={:.2f}".format(strm.getVirtRecvBuffBucketMaxDepth())
+    virtRecvBufferBucketRange = strm.getVirtRecvBuffBucketMaxDepth() - strm.getVirtRecvBuffBucketMinDepth()
+    print "Obs. Range VRX_FULL={:.2f}".format(virtRecvBufferBucketRange)
+
+    isVCBCompliant = ""
+    if virtRecvBufferBucketRange > strm.VrxFullSpecLeft() and virtRecvBufferBucketRange > strm.VrxFullSpecRight():
+        isVCBComplied = "NOT "
+    print "Stream does {}comply with the Virtual Receive Buffer Model of ST 2110-21\n".format(isVCBCompliant)
+
+    print "Receiver to start rendering after receiving {:.0f} packets.\n".format(strm.getVirtRecvBuffBucketMaxDepth() - strm.getVirtRecvBuffBucketMinDepth())
 
     return 0
 
