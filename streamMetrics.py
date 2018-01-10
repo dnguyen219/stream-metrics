@@ -5,6 +5,7 @@ from stream import ProfessionalMediaStream
 import argparse
 import sys
 import numpy
+from _version import __version__
 
 def writeHistogramToConsole(hist, bin_edges):
     bucketIdx = 0
@@ -38,7 +39,7 @@ def writeBar(value, maxValue, maxLength):
     return hashes
 
 def main():
-    parser = argparse.ArgumentParser(description='Stream Metrics')
+    parser = argparse.ArgumentParser(prog='streammetrics', description='Stream Metrics')
     parser.add_argument('pcap', help='PCAP file to dump')
     parser.add_argument('--activeWidth', default=1920)
     parser.add_argument('--activeHeight', default=1080)
@@ -49,6 +50,7 @@ def main():
     parser.add_argument('--senderType', default='2110TPW', help='2110TPN, 2110TPNL, 2110TPW')
     parser.add_argument('--rtpPayload', default=1428)
     parser.add_argument('-l', '--lib', default='dpkt', help='lib to use: scapy or dpkt (if not supplied, default to dpkt)')
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s ' + __version__)
     arguments = parser.parse_args(sys.argv[1:])
     pcapFile = arguments.pcap
     lib = arguments.lib
@@ -59,14 +61,14 @@ def main():
     #use dpkt or scapy to process the pcap file
     if lib == 'dpkt':
         with open(pcapFile, 'rb') as f:
-            print '= StreamMetrics =\n'
+            print '= StreamMetrics {} =\n'.format(__version__)
             print 'Reading: {}'.format(pcapFile)
             packets = dpkt.pcap.Reader(f)
             for ts, buf in packets:
                 strm.packetEvent(ts)
     elif lib == 'scapy':
         packets = rdpcap(pcapFile)
-        print '= StreamMetrics =\n'
+        print '= StreamMetrics {} =\n'.format(__version__)
         print 'Reading: {}'.format(pcapFile)
         for packet in packets:
             strm.packetEvent(packet.time)
