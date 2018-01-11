@@ -41,22 +41,21 @@ def writeBar(value, maxValue, maxLength):
 def main():
     parser = argparse.ArgumentParser(prog='streammetrics', description='Stream Metrics', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('pcap', help='PCAP file to dump')
-    parser.add_argument('--activeWidth', default=1920, help='active width of a frame')
-    parser.add_argument('--activeHeight', default=1080, help='active height of a frame')
-    parser.add_argument('--rate', default=59.94, help='field-rate for interlaced, frame-rate for progressive')
-    parser.add_argument('--interlaced', default=True, help='whether frames are interlaced')
-    parser.add_argument('--colorSubsampling', default='4:2:2', help='color subsampling')
-    parser.add_argument('--sampleWidth', default=10, help='sample width')
-    parser.add_argument('--senderType', default='2110TPW', help='2110TPN, 2110TPNL, 2110TPW')
-    parser.add_argument('--rtpPayload', default=1428, help='RTP payload')
-    parser.add_argument('-l', '--lib', default='dpkt', help='lib to use: scapy or dpkt (if not supplied, default to dpkt)')
+    parser.add_argument('--activeWidth', type=float, default=1920, help='active width of a frame')
+    parser.add_argument('--activeHeight', type=float, default=1080, help='active height of a frame')
+    parser.add_argument('--rate', type=float, default=59.94, help='field-rate for interlaced, frame-rate for progressive')
+    parser.add_argument('--interlaced', type=bool, default=True, help='whether frames are interlaced')
+    parser.add_argument('--colorSubsampling', type=str, default='4:2:2', help='color subsampling')
+    parser.add_argument('--sampleWidth', type=float, default=10, help='sample width')
+    parser.add_argument('--senderType', type=str, default='2110TPW', help='2110TPN, 2110TPNL, 2110TPW')
+    parser.add_argument('--rtpPayload', type=float, default=1428, help='RTP payload')
+    parser.add_argument('-l', '--lib', type=str, default='dpkt', help='lib to use: scapy or dpkt (if not supplied, default to dpkt)')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s ' + __version__)
     arguments = parser.parse_args(sys.argv[1:])
     pcapFile = arguments.pcap
     lib = arguments.lib
 
-    strm = ProfessionalMediaStream(arguments.activeWidth, arguments.activeHeight, arguments.rate, arguments.interlaced, arguments.colorSubsampling, arguments.sampleWidth, arguments.senderType)
-    strm.rtpPayload = arguments.rtpPayload
+    strm = ProfessionalMediaStream(arguments.activeWidth, arguments.activeHeight, arguments.rate, arguments.interlaced, arguments.colorSubsampling, arguments.sampleWidth, arguments.senderType, arguments.rtpPayload)
 
     #use dpkt or scapy to process the pcap file
     if lib == 'dpkt':
@@ -98,8 +97,8 @@ def main():
     writePictogramToConsole(hist, bin_edges)
 
     print "\n= ST 2110-21 ="
-    print "Octets to capture the active picture area={:.2f}".format(strm.activeOctets())
-    print "Number of packets per frame of video, N_pkts={:.2f}".format(strm.NPackets())
+    print "Octets to capture the active picture area={:.0f}".format(strm.activeOctets())
+    print "Number of packets per frame of video, N_pkts={:.0f}".format(strm.NPackets())
     print "Period between consecutive frames of video, T_FRAME (in s)={:.2e}".format(strm.TFrame())
     print "Sender Type={}".format(strm.senderType)
 
@@ -113,7 +112,7 @@ def main():
 
     isNCCompliant = ""
     if strm.getNetCompatBucketMaxDepth() > strm.CMaxSpecLeft() and strm.getNetCompatBucketMaxDepth() > strm.CMaxSpecRight():
-        isNCComplied = "NOT "
+        isNCCompliant = "NOT "
     print "Stream does {}comply with the Network Compatibility Model of ST 2110-21\n".format(isNCCompliant)
 
     print "= Virtual Receiver Buffer Model Compliance ="
@@ -128,7 +127,7 @@ def main():
 
     isVCBCompliant = ""
     if virtRecvBufferBucketRange > strm.VrxFullSpecLeft() and virtRecvBufferBucketRange > strm.VrxFullSpecRight():
-        isVCBComplied = "NOT "
+        isVCBCompliant = "NOT "
     print "Stream does {}comply with the Virtual Receive Buffer Model of ST 2110-21\n".format(isVCBCompliant)
 
     print "Receiver to start rendering after receiving {:.0f} packets.\n".format(strm.getVirtRecvBuffBucketMaxDepth() - strm.getVirtRecvBuffBucketMinDepth())

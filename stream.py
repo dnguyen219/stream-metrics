@@ -3,9 +3,8 @@ import math, re
 import sys
 
 class ProfessionalMediaStream:
-    global RTP_PAYLOAD, __MAX_IP, __lastTicks, deltas, __netCompatBucketDepth, netCompatBucketMaxDepth, __virtRecvBuffBucketDepth, virtRecvBuffBucketMaxDepth, virtRecvBuffBucketMinDepth, beta
+    global __MAX_IP, __lastTicks, deltas, __netCompatBucketDepth, netCompatBucketMaxDepth, __virtRecvBuffBucketDepth, virtRecvBuffBucketMaxDepth, virtRecvBuffBucketMinDepth, beta
 
-    RTP_PAYLOAD = 1428 #per ST 2110
     __MAX_IP = 1500
     __lastTicks = 0.0
     deltas = []
@@ -17,10 +16,9 @@ class ProfessionalMediaStream:
 
     # Ratio of active time to total time within the frame period
     rActive = 1.0
-    senderType = "2110TPW"
     beta = 1.1
 
-    def __init__(self, activeWidth, activeHeight, rate, interlaced, colorSubsampling, sampleWidth, senderType):
+    def __init__(self, activeWidth, activeHeight, rate, interlaced, colorSubsampling, sampleWidth, senderType, rtpPayload):
         self.activeWidth = activeWidth
         self.activeHeight = activeHeight
         self.rate = rate
@@ -28,6 +26,7 @@ class ProfessionalMediaStream:
         self.colorSubsampling = colorSubsampling
         self.sampleWidth = sampleWidth
         self.senderType = senderType
+        self.rtpPayload = rtpPayload
 
     # Only handles 8, 10, 12, 16 sampleWidths for 4:2:2 and 4:4:4
     def pGroupOctets(self):
@@ -53,7 +52,7 @@ class ProfessionalMediaStream:
 
     # Number of packets per frame of video (depends on mapping details)
     def NPackets(self):
-        return math.ceil(self.activeOctets() * 1.0 / RTP_PAYLOAD)
+        return math.ceil(self.activeOctets() * 1.0 / self.rtpPayload)
 
     # Period between consecutive frames of video at the prevailing frame rate
     def TFrame(self):
@@ -107,31 +106,28 @@ class ProfessionalMediaStream:
         ticks = float(ticks)
         global __lastTicks, deltas, __netCompatBucketDepth, netCompatBucketMaxDepth, __virtRecvBuffBucketDepth, virtRecvBuffBucketMaxDepth, virtRecvBuffBucketMinDepth
         if __lastTicks > 0:
-            # deltas converted from ticks (0.1 us) to micro-seconds
-            # deltas.append((ticks - __lastTicks) / 10)
+            # deltas converted from ticks (seconds) to micro-seconds
             deltas.append((ticks - __lastTicks) * 1000000.0)
         if self.rate and self.activeHeight and self.activeWidth and self.colorSubsampling and self.interlaced and self.sampleWidth:
             if __lastTicks > 0:
-                # netCompatPacketsDrained = ((ticks - __lastTicks) / 10000000.0) / self.TDrain(beta)
-                netCompatPacketsDrained = ((ticks - __lastTicks) / 1000000.0) / self.TDrain(beta)
+                netCompatPacketsDrained = ((ticks - __lastTicks) / 1.0) / self.TDrain(beta)
                 __netCompatBucketDepth -= netCompatPacketsDrained
-            if __netCompatBucketDepth < 0:
-                __netCompatBucketDepth = 0
+                if __netCompatBucketDepth < 0:
+                    __netCompatBucketDepth = 0
 
-            __netCompatBucketDepth += 1
+                __netCompatBucketDepth += 1
 
-            if __netCompatBucketDepth > netCompatBucketMaxDepth:
-                netCompatBucketMaxDepth = math.ceil(__netCompatBucketDepth)
+                if __netCompatBucketDepth > netCompatBucketMaxDepth:
+                    netCompatBucketMaxDepth = math.ceil(__netCompatBucketDepth)
 
-            # virtRecvBuffPacketsDrained = ((ticks - __lastTicks) / 10000000.0) / self.TDrain(1.0)
-            virtRecvBuffPacketsDrained = ((ticks - __lastTicks) / 1000000.0) / self.TDrain(1.0)
-            __virtRecvBuffBucketDepth -= virtRecvBuffPacketsDrained
+                virtRecvBuffPacketsDrained = ((ticks - __lastTicks) / 1.0) / self.TDrain(1.0)
+                __virtRecvBuffBucketDepth -= virtRecvBuffPacketsDrained
 
-            __virtRecvBuffBucketDepth += 1
-            if __virtRecvBuffBucketDepth < virtRecvBuffBucketMinDepth:
-                virtRecvBuffBucketMinDepth = math.floor(__virtRecvBuffBucketDepth)
-            if __virtRecvBuffBucketDepth > virtRecvBuffBucketMaxDepth:
-                virtRecvBuffBucketMaxDepth = math.ceil(__virtRecvBuffBucketDepth)
+                __virtRecvBuffBucketDepth += 1
+                if __virtRecvBuffBucketDepth < virtRecvBuffBucketMinDepth:
+                    virtRecvBuffBucketMinDepth = math.floor(__virtRecvBuffBucketDepth)
+                if __virtRecvBuffBucketDepth > virtRecvBuffBucketMaxDepth:
+                    virtRecvBuffBucketMaxDepth = math.ceil(__virtRecvBuffBucketDepth)
 
         __lastTicks = ticks
 
@@ -140,9 +136,6 @@ class ProfessionalMediaStream:
 
     def getBeta(self):
         return beta
-
-    def getNetCompatBucketMaxDepth(self):
-        return netCompatBucketMaxDepth
 
     def getNetCompatBucketMaxDepth(self):
         return netCompatBucketMaxDepth
