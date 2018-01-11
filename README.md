@@ -1,5 +1,5 @@
 # stream-metrics
-CLI program to derive SMPTE ST 2110 metrics from input .pcap files. This is the python version of the original [StreamMetrics](https://github.com/andrewburnheimer/StreamMetrics).
+CLI program to derive SMPTE ST 2110 metrics from input .pcap files. This is the python version of the original [StreamMetrics](https://github.com/andrewburnheimer/StreamMetrics). The enhancement is the ability to process nanosecond .pcap files.
 
 ## License
 
@@ -23,7 +23,7 @@ royalties.
 
 ## Usage
 
-```bash
+```
 usage: streammetrics [-h] [--activeWidth ACTIVEWIDTH]
                      [--activeHeight ACTIVEHEIGHT] [--rate RATE]
                      [--interlaced INTERLACED]
@@ -40,21 +40,28 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   --activeWidth ACTIVEWIDTH
+                        active width of a frame (default: 1920)
   --activeHeight ACTIVEHEIGHT
+                        active height of a frame (default: 1080)
   --rate RATE           field-rate for interlaced, frame-rate for progressive
+                        (default: 59.94)
   --interlaced INTERLACED
+                        whether frames are interlaced (default: True)
   --colorSubsampling COLORSUBSAMPLING
+                        color subsampling (default: 4:2:2)
   --sampleWidth SAMPLEWIDTH
+                        sample width (default: 10)
   --senderType SENDERTYPE
-                        2110TPN, 2110TPNL, 2110TPW
+                        2110TPN, 2110TPNL, 2110TPW (default: 2110TPW)
   --rtpPayload RTPPAYLOAD
+                        RTP payload (default: 1428)
   -l LIB, --lib LIB     lib to use: scapy or dpkt (if not supplied, default to
-                        dpkt)
+                        dpkt) (default: dpkt)
   -v, --version         show program's version number and exit
   ```
 
 
-### Example Results
+## Example Results
 
 ```
 = StreamMetrics 1.0.0 =

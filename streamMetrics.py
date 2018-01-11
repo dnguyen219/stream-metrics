@@ -39,16 +39,16 @@ def writeBar(value, maxValue, maxLength):
     return hashes
 
 def main():
-    parser = argparse.ArgumentParser(prog='streammetrics', description='Stream Metrics')
+    parser = argparse.ArgumentParser(prog='streammetrics', description='Stream Metrics', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('pcap', help='PCAP file to dump')
-    parser.add_argument('--activeWidth', default=1920)
-    parser.add_argument('--activeHeight', default=1080)
+    parser.add_argument('--activeWidth', default=1920, help='active width of a frame')
+    parser.add_argument('--activeHeight', default=1080, help='active height of a frame')
     parser.add_argument('--rate', default=59.94, help='field-rate for interlaced, frame-rate for progressive')
-    parser.add_argument('--interlaced', default=True)
-    parser.add_argument('--colorSubsampling', default='4:2:2')
-    parser.add_argument('--sampleWidth', default=10)
+    parser.add_argument('--interlaced', default=True, help='whether frames are interlaced')
+    parser.add_argument('--colorSubsampling', default='4:2:2', help='color subsampling')
+    parser.add_argument('--sampleWidth', default=10, help='sample width')
     parser.add_argument('--senderType', default='2110TPW', help='2110TPN, 2110TPNL, 2110TPW')
-    parser.add_argument('--rtpPayload', default=1428)
+    parser.add_argument('--rtpPayload', default=1428, help='RTP payload')
     parser.add_argument('-l', '--lib', default='dpkt', help='lib to use: scapy or dpkt (if not supplied, default to dpkt)')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s ' + __version__)
     arguments = parser.parse_args(sys.argv[1:])
