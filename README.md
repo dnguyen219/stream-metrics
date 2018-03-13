@@ -136,7 +136,7 @@ Receiver to start rendering after receiving 281 packets.
 
 ## Contribute
 
-Please fork the GitHub project (https://github.com/quarker/stream-metrics),
+Please fork the GitHub project [stream-metrics](https://github.com/dnguyen219/stream-metrics),
 make any changes, commit and push to GitHub, and submit a pull request.
 
 
@@ -146,7 +146,5 @@ This project was initiated by Dao Nguyen.
 
 * Email:
   * dao_nguyen@comcast.com
-* Twitter:
-  * @quarker93
 * Github:
-  * https://github.com/quarker
+  * https://github.com/dnguyen219
